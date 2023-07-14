@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_const_constructors, prefer_final_fields, avoid_unnecessary_containers, prefer_const_literals_to_create_immutables, unused_local_variable
+// ignore_for_file: prefer_const_constructors, prefer_final_fields, avoid_unnecessary_containers, prefer_const_literals_to_create_immutables, unused_local_variable, no_leading_underscores_for_local_identifiers
 
 import 'package:flutter/material.dart';
 
@@ -8,14 +8,12 @@ void main() {
     title: "Simple Interest Calculator App",
     home: SIForm(),
     theme: ThemeData(
-      // brightness: Brightness.dark,
       primaryColor: Colors.indigo,
       colorScheme: ColorScheme.fromSwatch(
-      primarySwatch: Colors.indigo,
-      accentColor: Colors.indigoAccent,
-      // backgroundColor: Colors.black,
-      brightness: Brightness.dark,
-    ),
+        primarySwatch: Colors.indigo,
+        accentColor: Colors.indigoAccent,
+        brightness: Brightness.dark,
+      ),
     ),
   ));
 }
@@ -33,12 +31,28 @@ class _SIFormState extends State<SIForm> {
   var _currencies = ["naira", "pound", "dollar", "others"];
   final _minimumPadding = 5.0;
 
+  var _currentItemSelected = "";
+  String displayResult = "";
+
+  TextEditingController principalController = TextEditingController();
+  TextEditingController roiController = TextEditingController();
+  TextEditingController timeController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _currentItemSelected = _currencies[0];
+  }
+
   @override
   Widget build(BuildContext context) {
     TextStyle? textStyle = Theme.of(context).textTheme.titleMedium;
     return Scaffold(
         // resizeToAvoidBottomInset: false,
-        appBar: AppBar(title: Text("Simple Interest Calculator")),
+        appBar: AppBar(
+          title: Text("Simple Interest Calculator"),
+          backgroundColor: Colors.indigo,
+        ),
         body: Container(
           margin: EdgeInsets.all(_minimumPadding * 2),
           child: ListView(children: <Widget>[
@@ -49,6 +63,7 @@ class _SIFormState extends State<SIForm> {
               child: TextField(
                 keyboardType: TextInputType.number,
                 style: textStyle,
+                controller: principalController,
                 decoration: InputDecoration(
                     labelText: "Principal",
                     labelStyle: textStyle,
@@ -63,6 +78,7 @@ class _SIFormState extends State<SIForm> {
               child: TextField(
                 keyboardType: TextInputType.number,
                 style: textStyle,
+                controller: roiController,
                 decoration: InputDecoration(
                     labelText: "Rate of Interest",
                     labelStyle: textStyle,
@@ -80,6 +96,7 @@ class _SIFormState extends State<SIForm> {
                         child: TextField(
                       keyboardType: TextInputType.number,
                       style: textStyle,
+                      controller: timeController,
                       decoration: InputDecoration(
                           labelText: "Time",
                           labelStyle: textStyle,
@@ -92,14 +109,16 @@ class _SIFormState extends State<SIForm> {
                     ),
                     Expanded(
                         child: DropdownButton<String>(
-                      value: _currencies[0],
                       items: _currencies.map((String valueItem) {
                         return DropdownMenuItem<String>(
                           value: valueItem,
                           child: Text(valueItem),
                         );
                       }).toList(),
-                      onChanged: (value) => {},
+                      value: _currentItemSelected,
+                      onChanged: (newValueSelected) {
+                        onDropDownSelectedItem(newValueSelected!);
+                      },
                     ))
                   ],
                 )),
@@ -110,19 +129,38 @@ class _SIFormState extends State<SIForm> {
                   children: <Widget>[
                     Expanded(
                         child: ElevatedButton(
-                      child: Text("Calculate", style: textStyle,),
-                      onPressed: () {},
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.indigo,
+                          foregroundColor: Colors.black),
+                      child: Text("Calculate", textScaleFactor: 1.3),
+                      onPressed: () {
+                        setState(() {
+                          displayResult = calculateSimpleInterest();
+                        });
+                      },
                     )),
                     Expanded(
                         child: ElevatedButton(
-                      child: Text("Reset", style: textStyle,),
-                      onPressed: () {},
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.black,
+                          foregroundColor: Colors.white),
+                      child: Text(
+                        "Reset",
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _reset();
+                        });
+                      },
                     ))
                   ],
                 )),
             Padding(
               padding: EdgeInsets.all(_minimumPadding * 2),
-              child: Text("Todo Text", style: textStyle,),
+              child: Text(
+                displayResult,
+                style: textStyle,
+              ),
             )
           ]),
         ));
@@ -136,5 +174,31 @@ class _SIFormState extends State<SIForm> {
       margin: EdgeInsets.all(_minimumPadding * 10),
       child: image,
     );
+  }
+
+  void onDropDownSelectedItem(String newValueSelected) {
+    setState(() {
+      _currentItemSelected = newValueSelected;
+    });
+  }
+
+  String calculateSimpleInterest() {
+    double principal = double.parse(principalController.text);
+    double roi = double.parse(roiController.text);
+    double time = double.parse(timeController.text);
+
+    double totalAmount = principal + (principal * roi * time);
+    String result =
+        'After $time years, your investment will be worth $totalAmount $_currentItemSelected ';
+    return result;
+  }
+
+  void _reset() {
+     principalController.text = "";
+     roiController.text = "";
+     timeController.text = "";
+     displayResult = "";
+
+     _currentItemSelected = _currencies[0];
   }
 }
